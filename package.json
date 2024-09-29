@@ -1,0 +1,20 @@
+{
+  "name": "check-update",
+  "version": "0.0.0",
+  "description": "A web scraper.",
+  "main": "./build/src/index.js",
+  "scripts": {
+    "start": "node ./build/src/index.js",
+    "dev": "tsc && npm start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PrasitSahu/check-update.git"
+  },
+  "author": "Prasit Sahu",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PrasitSahu/check-update/issues"
+  },
+  "homepage": "https://github.com/PrasitSahu/check-update#readme"
+}
