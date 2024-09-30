@@ -1,8 +1,9 @@
 {
   "name": "check-update",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A web scraper.",
   "main": "./build/src/index.js",
+  "type": "module",
   "scripts": {
     "start": "node ./build/src/index.js",
     "dev": "tsc && npm start"
@@ -16,5 +17,9 @@
   "bugs": {
     "url": "https://github.com/PrasitSahu/check-update/issues"
   },
-  "homepage": "https://github.com/PrasitSahu/check-update#readme"
+  "homepage": "https://github.com/PrasitSahu/check-update#readme",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "cheerio": "^1.0.0"
+  }
 }
