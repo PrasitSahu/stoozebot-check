@@ -1,5 +1,8 @@
-import * as cheerio from "cheerio";
-import axios from "axios";
+import { addDoc, collection, Timestamp } from "firebase/firestore";
+import _ from "lodash";
+import { firestoreDB as db } from "../firebase.config.js";
+import { withTimeStamp } from "../utils/index.js";
+import { getLastUpdate, getLatestUpdate, LatestUpdate } from "./getUpdate.js";
 
 export interface Update {
   title: string;
@@ -7,33 +10,41 @@ export interface Update {
   url: string;
 }
 
+export interface UpdateDoc {
+  created_at: Timestamp;
+  data: Update;
+}
+
 (async function () {
-  const url = new URL("https://www.soa.ac.in/iter");
+  let latestUpdate: LatestUpdate | null = null;
 
-  const res = await axios.get(url.href);
+  try {
+    latestUpdate = await getLatestUpdate();
+    const lastUpdate = await getLastUpdate();
 
-  const $ = cheerio.load(res.data);
-  const targetElSelctor = ".summary-item-list .summary-item";
-  // const updateEl = $(targetElSelctor);
+    const updates: Update[] = [];
 
-  const latestUpdate: Update = {
-    title: $(`${targetElSelctor} .summary-content .summary-title a`).prop(
-      "innerText"
-    ) as string,
+    while (!_.isEqual(latestUpdate.data, lastUpdate.data)) {
+      updates.unshift(latestUpdate.data);
+      latestUpdate = latestUpdate.next();
+    }
 
-    url: `${url.origin}${$(
-      `${targetElSelctor} .summary-content .summary-title a`
-    ).prop("href")}`,
-
-    date: new Date(
-      $(
-        `${targetElSelctor} .summary-content .summary-metadata-container .summary-metadata time`
-      ).prop("datetime")
-    ).toLocaleDateString("default", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    }),
-  };
-  console.log(latestUpdate);
+    if (updates.length) {
+      console.log("Update(s) available!");
+      for (let update of updates) {
+        await addDoc(collection(db, "updates"), withTimeStamp(update));
+      }
+      console.log("update(s) added to database");
+    } else console.log("no updates yet!");
+  } catch (error: any) {
+    if (error.code === "EMTCOL") {
+      latestUpdate &&
+        (await addDoc(
+          collection(db, "updates"),
+          withTimeStamp(latestUpdate.data)
+        ));
+    }
+  } finally {
+    process.exit();
+  }
 })();
