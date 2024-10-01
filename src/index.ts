@@ -15,7 +15,7 @@ export interface UpdateDoc {
   data: Update;
 }
 
-(async function () {
+export default async function checkUpdate() {
   let latestUpdate: LatestUpdate | null = null;
 
   try {
@@ -47,4 +47,4 @@ export interface UpdateDoc {
   } finally {
     process.exit();
   }
-})();
+}
