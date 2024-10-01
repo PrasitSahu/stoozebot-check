@@ -6,6 +6,3 @@ build
 
 # environments
 *.env
-
-# tests
-tests
