@@ -1,11 +1,11 @@
 {
   "name": "check-update",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A web scraper.",
-  "main": "./build/src/index.js",
+  "main": "./build/src/functions/schedule.js",
   "type": "module",
   "scripts": {
-    "start": "node ./build/src/index.js",
+    "start": "func start --verbose",
     "build": "tsc",
     "dev": "npm run build && npm start"
   },
@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/PrasitSahu/check-update#readme",
   "dependencies": {
+    "@azure/functions": "^4.5.1",
     "axios": "^1.7.7",
     "cheerio": "^1.0.0",
     "dotenv": "^16.4.5",
