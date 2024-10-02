@@ -3,6 +3,7 @@ import _ from "lodash";
 import { firestoreDB as db } from "../firebase.config.js";
 import { withTimeStamp } from "../utils/index.js";
 import { getLastUpdate, getLatestUpdate, LatestUpdate } from "./getUpdate.js";
+import sendMessages from "./serviceBus/sendMessages.js";
 
 export interface Update {
   title: string;
@@ -31,10 +32,14 @@ export default async function checkUpdate() {
 
     if (updates.length) {
       console.log("Update(s) available!");
+
+      // enqueue updates to message queue
+      await sendMessages(updates);
+
+      // insert updates to database
       for (let update of updates) {
         await addDoc(collection(db, "updates"), withTimeStamp(update));
       }
-      console.log("update(s) added to database");
     } else console.log("no updates yet!");
   } catch (error: any) {
     if (error.code === "EMTCOL") {
@@ -43,6 +48,8 @@ export default async function checkUpdate() {
           collection(db, "updates"),
           withTimeStamp(latestUpdate.data)
         ));
+    } else {
+      throw error;
     }
   } finally {
     process.exit();

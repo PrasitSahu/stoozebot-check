@@ -1,6 +1,6 @@
 {
   "name": "check-update",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "A web scraper.",
   "main": "./build/src/functions/schedule.js",
   "type": "module",
@@ -23,6 +23,7 @@
   "homepage": "https://github.com/PrasitSahu/check-update#readme",
   "dependencies": {
     "@azure/functions": "^4.5.1",
+    "@azure/service-bus": "^7.9.5",
     "axios": "^1.7.7",
     "cheerio": "^1.0.0",
     "dotenv": "^16.4.5",
