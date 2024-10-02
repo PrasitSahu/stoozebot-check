@@ -8,8 +8,9 @@
     "start": "func start --verbose",
     "build": "tsc",
     "dev": "npm run build && npm start",
-    "test": "jest --watchAll --detectOpenHandles",
-    "test:utils": "jest ./tests/utils/"
+    "test": "jest --detectOpenHandles",
+    "test:utils": "jest ./tests/utils/ --watchAll --detectOpenHandles",
+    "test:src": "jest ./tests/src/ --watchAll --detectOpenHandles"
   },
   "repository": {
     "type": "git",
