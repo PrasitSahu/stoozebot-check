@@ -16,7 +16,7 @@ export interface UpdateDoc {
   data: Update;
 }
 
-export default async function checkUpdate() {
+export default async function checkUpdate(): Promise<Update[]> {
   let latestUpdate: LatestUpdate | null = null;
 
   try {
@@ -40,7 +40,12 @@ export default async function checkUpdate() {
       for (let update of updates) {
         await addDoc(collection(db, "updates"), withTimeStamp(update));
       }
-    } else console.log("no updates yet!");
+
+      return updates;
+    } else {
+      console.log("no updates yet!");
+      return updates;
+    }
   } catch (error: any) {
     if (error.code === "EMTCOL") {
       latestUpdate &&
@@ -48,10 +53,9 @@ export default async function checkUpdate() {
           collection(db, "updates"),
           withTimeStamp(latestUpdate.data)
         ));
+      return [];
     } else {
       throw error;
     }
-  } finally {
-    process.exit();
   }
 }

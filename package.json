@@ -1,6 +1,6 @@
 {
   "name": "check-update",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "A web scraper.",
   "main": "./build/src/functions/schedule.js",
   "type": "module",
