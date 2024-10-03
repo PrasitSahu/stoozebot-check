@@ -14,14 +14,14 @@ export default async function sendMessages(updates: Update[]) {
 
   const sbClient = new ServiceBusClient(process.env.QUEUE_CONN_STRING || "");
   const sender = sbClient.createSender(process.env.QUEUE_NAME || "");
-  const messageBatch = await sender.createMessageBatch();
+  let messageBatch = await sender.createMessageBatch();
 
   for (let message of messages) {
     if (!messageBatch.tryAddMessage(message)) {
       await sender.sendMessages(messageBatch);
 
-      const newBatch = await sender.createMessageBatch();
-      if (!newBatch.tryAddMessage(message)) {
+      messageBatch = await sender.createMessageBatch();
+      if (!messageBatch.tryAddMessage(message)) {
         const err = new Error();
         err.message = "Message too large to send";
         err.name = "message queue";
