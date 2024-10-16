@@ -14,14 +14,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PrasitSahu/check-update.git"
+    "url": "git+https://github.com/PrasitSahu/stoozebot-check.git"
   },
   "author": "Prasit Sahu",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/PrasitSahu/check-update/issues"
+    "url": "https://github.com/PrasitSahu/stoozebot-check/issues"
   },
-  "homepage": "https://github.com/PrasitSahu/check-update#readme",
+  "homepage": "https://github.com/PrasitSahu/stoozebot-check#readme",
   "dependencies": {
     "@azure/functions": "^4.5.1",
     "@azure/service-bus": "^7.9.5",
