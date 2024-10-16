@@ -1,1 +1,1 @@
-# Check-update
+# stoozebot-check

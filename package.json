@@ -1,5 +1,5 @@
 {
-  "name": "check-update",
+  "name": "stoozebot-check",
   "version": "0.5.0",
   "description": "A web scraper.",
   "main": "./build/src/functions/schedule.js",
