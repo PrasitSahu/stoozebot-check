@@ -1,3 +1,6 @@
+import * as dotenv from "dotenv";
+dotenv.config();
+// 👆 stays there
 import { Update } from "../../src/index.js";
 import QueueService from "./index.js";
 
