@@ -4,7 +4,7 @@ import {
   ServiceBusReceiver,
   ServiceBusSender,
 } from "@azure/service-bus";
-import { generateUID } from "../../utils";
+import { generateUID } from "../../utils/index.js";
 
 export default class QueueService<Message> {
   private queueClient: ServiceBusClient;
