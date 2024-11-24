@@ -1,9 +1,6 @@
-import { addDoc, collection, Timestamp } from "firebase/firestore";
+import { Timestamp } from "firebase/firestore";
 import _ from "lodash";
-import { firestoreDB as db } from "../firebase.config.js";
-import { withTimeStamp } from "../utils/index.js";
-import { getLastUpdate, getLatestUpdate, LatestUpdate } from "./getUpdate.js";
-import sendMessages from "./serviceBus/sendMessages.js";
+import scraper from "../services/scraper.js";
 
 export interface Update {
   title: string;
@@ -16,46 +13,14 @@ export interface UpdateDoc {
   data: Update;
 }
 
-export default async function checkUpdate(): Promise<Update[]> {
-  let latestUpdate: LatestUpdate | null = null;
+export async function checkUpdate(lastUpdate: Update) {
+  let latestUpdate = await scraper.getLatestUpdate();
 
-  try {
-    latestUpdate = await getLatestUpdate();
-    const lastUpdate = await getLastUpdate();
+  const updates: Update[] = [];
 
-    const updates: Update[] = [];
-
-    while (!_.isEqual(latestUpdate.data, lastUpdate.data)) {
-      updates.unshift(latestUpdate.data);
-      latestUpdate = latestUpdate.next();
-    }
-
-    if (updates.length) {
-      console.log("Update(s) available!");
-
-      // enqueue updates to message queue
-      await sendMessages(updates);
-
-      // insert updates to database
-      for (let update of updates) {
-        await addDoc(collection(db, "updates"), withTimeStamp(update));
-      }
-
-      return updates;
-    } else {
-      console.log("no updates yet!");
-      return updates;
-    }
-  } catch (error: any) {
-    if (error.code === "EMTCOL") {
-      latestUpdate &&
-        (await addDoc(
-          collection(db, "updates"),
-          withTimeStamp(latestUpdate.data)
-        ));
-      return [];
-    } else {
-      throw error;
-    }
+  while (!_.isEqual(lastUpdate, latestUpdate.data)) {
+    updates.unshift(latestUpdate.data);
+    latestUpdate = latestUpdate.next();
   }
+  return updates;
 }
