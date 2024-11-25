@@ -1,6 +1,6 @@
-import * as dotenv from "dotenv";
-dotenv.config();
+import "../../env.config.js";
 // 👆 stays there
+
 import { app, InvocationContext, Timer } from "@azure/functions";
 import {
   addDoc,
