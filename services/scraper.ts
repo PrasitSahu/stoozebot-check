@@ -1,5 +1,4 @@
 import axios from "axios";
-import { LatestUpdate } from "../src/getUpdate";
 import { Update } from "../src/index";
 import * as cheerio from "cheerio";
 
