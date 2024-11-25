@@ -12,6 +12,7 @@ import { firestoreDB } from "../../firebase.config.js";
 import { getLastUpdate } from "../../services/firebase/firestore.js";
 import partialUpdateQService from "../../services/serviceBus/partialUpdateQService.js";
 import { checkUpdate, Update, UpdateDoc } from "../index.js";
+import QueueService from "../../services/serviceBus/index.js";
 
 let cachedLastUpdate: Promise<UpdateDoc> = getLastUpdate(firestoreDB);
 
@@ -43,6 +44,8 @@ async function schedule(timer: Timer, ctx: InvocationContext) {
     }
   } catch (error) {
     ctx.error(error);
+  } finally {
+    await QueueService.closeAllClients();
   }
 }
 
