@@ -10,9 +10,9 @@ import {
 } from "firebase/firestore";
 import { firestoreDB } from "../../firebase.config.js";
 import { getLastUpdate } from "../../services/firebase/firestore.js";
+import QueueService from "../../services/serviceBus/index.js";
 import partialUpdateQService from "../../services/serviceBus/partialUpdateQService.js";
 import { checkUpdate, Update, UpdateDoc } from "../index.js";
-import QueueService from "../../services/serviceBus/index.js";
 
 let cachedLastUpdate: Promise<UpdateDoc> = getLastUpdate(firestoreDB);
 
@@ -24,21 +24,22 @@ async function schedule(timer: Timer, ctx: InvocationContext) {
     if (updates.length) {
       console.log("update(s) available!");
 
-      const docs: UpdateDoc[] = updates.map((update) => ({
-        created_at: Timestamp.now(),
-        data: update,
-      }));
+      for (let update of updates) {
+        const doc: UpdateDoc = {
+          created_at: Timestamp.now(),
+          data: update,
+        };
 
-      for (let doc of docs) {
         await addDoc(
           collection(firestoreDB, "updates") as CollectionReference<UpdateDoc>,
           doc
         );
+
+        cachedLastUpdate = Promise.resolve(doc);
+        await new Promise((res) => setTimeout(res, 1));
       }
 
       await partialUpdateQService.sendMessages(updates);
-
-      cachedLastUpdate = Promise.resolve(docs[docs.length - 1]);
     } else {
       console.log("No update available.");
     }
