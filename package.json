@@ -2,11 +2,11 @@
   "name": "stoozebot-check",
   "version": "0.5.0",
   "description": "A web scraper.",
-  "main": "./build/src/functions/schedule.js",
+  "main": "./build/src/functions/check.js",
   "type": "module",
   "scripts": {
     "start": "func start --verbose",
-    "build": "tsc",
+    "build": "tsc --build",
     "dev": "npm run build && npm start",
     "test": "jest --detectOpenHandles",
     "test:utils": "jest ./tests/utils/ --watchAll --detectOpenHandles",

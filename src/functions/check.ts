@@ -16,13 +16,13 @@ import { checkUpdate, Update, UpdateDoc } from "../index.js";
 
 let cachedLastUpdate: Promise<UpdateDoc> = getLastUpdate(firestoreDB);
 
-async function schedule(timer: Timer, ctx: InvocationContext) {
+async function scheduleCheck(timer: Timer, ctx: InvocationContext) {
   try {
     const lastUpdate = (await cachedLastUpdate).data;
     const updates: Update[] = await checkUpdate(lastUpdate);
 
     if (updates.length) {
-      console.log("update(s) available!");
+      ctx.log("update(s) available!");
 
       for (let update of updates) {
         const doc: UpdateDoc = {
@@ -41,7 +41,7 @@ async function schedule(timer: Timer, ctx: InvocationContext) {
 
       await partialUpdateQService.sendMessages(updates);
     } else {
-      console.log("No update available.");
+      ctx.log("No update available.");
     }
   } catch (error) {
     ctx.error(error);
@@ -50,7 +50,7 @@ async function schedule(timer: Timer, ctx: InvocationContext) {
   }
 }
 
-app.timer("schedule", {
-  handler: schedule,
+app.timer("check", {
+  handler: scheduleCheck,
   schedule: "*/5 * * * *",
 });
