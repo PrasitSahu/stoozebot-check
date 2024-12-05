@@ -3,13 +3,21 @@ import { Update } from "../src/index";
 import * as cheerio from "cheerio";
 
 class Scraper {
-  private static url = new URL("https://www.soa.ac.in/iter");
+  private static readonly url = new URL("https://www.soa.ac.in/iter");
 
   contructor() {}
 
+  async loadPage() {
+    try {
+      const res = await axios.get(Scraper.url.href);
+      return cheerio.load(res.data);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getLatestUpdate() {
-    const res = await axios.get(Scraper.url.href);
-    const $ = cheerio.load(res.data);
+    const $ = await this.loadPage();
     const targetElSelector = ".summary-item-list .summary-item";
 
     function returnData(child: number): Update {
