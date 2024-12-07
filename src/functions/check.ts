@@ -10,11 +10,13 @@ import QueueService from "../../services/serviceBus/index.js";
 import partialUpdateQService from "../../services/serviceBus/partialUpdateQService.js";
 import { checkUpdate, genUpdateDoc, Update, UpdateDoc } from "../index.js";
 
-let cachedLastUpdate: Promise<UpdateDoc> = getLastUpdate(firestoreDB);
+let cachedLastUpdate: Promise<UpdateDoc | null> = getLastUpdate(firestoreDB);
 
 async function scheduleCheck(timer: Timer, ctx: InvocationContext) {
   try {
-    const lastUpdate = (await cachedLastUpdate).data;
+    const lastUpdate = (await cachedLastUpdate)?.data;
+
+    if (!lastUpdate) return ctx.log("No last Updates saved!");
     let latestUpdate = await scraper.getLatestUpdate();
 
     const updates: Update[] = await checkUpdate(lastUpdate, latestUpdate);
