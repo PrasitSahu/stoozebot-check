@@ -1,6 +1,5 @@
 import { Timestamp } from "firebase/firestore";
 import _ from "lodash";
-import scraper from "../services/scraper.js";
 
 export interface Update {
   title: string;
@@ -13,14 +12,28 @@ export interface UpdateDoc {
   data: Update;
 }
 
-export async function checkUpdate(lastUpdate: Update) {
-  let latestUpdate = await scraper.getLatestUpdate();
-
+export async function checkUpdate(lastUpdate: Update, latestUpdate: any) {
+  let lUpdate = latestUpdate;
   const updates: Update[] = [];
 
-  while (!_.isEqual(lastUpdate, latestUpdate.data)) {
-    updates.unshift(latestUpdate.data);
-    latestUpdate = latestUpdate.next();
+  while (!_.isEqual(lastUpdate, lUpdate.data)) {
+    updates.unshift(lUpdate.data);
+    lUpdate = lUpdate.next();
   }
   return updates;
+}
+
+export async function genUpdateDoc(updates: Update[]) {
+  const updateDocs: UpdateDoc[] = [];
+  for (let update of updates) {
+    const doc: UpdateDoc = {
+      created_at: Timestamp.now(),
+      data: update,
+    };
+
+    updateDocs.push(doc);
+    await new Promise((res) => setTimeout(res, 3));
+  }
+
+  return updateDocs;
 }

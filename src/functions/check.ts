@@ -2,44 +2,38 @@ import "../../env.config.js";
 // 👆 stays there
 
 import { app, InvocationContext, Timer } from "@azure/functions";
-import {
-  addDoc,
-  collection,
-  CollectionReference,
-  Timestamp,
-} from "firebase/firestore";
+import { addDoc, collection, CollectionReference } from "firebase/firestore";
 import { firestoreDB } from "../../firebase.config.js";
 import { getLastUpdate } from "../../services/firebase/firestore.js";
+import scraper from "../../services/scraper.js";
 import QueueService from "../../services/serviceBus/index.js";
 import partialUpdateQService from "../../services/serviceBus/partialUpdateQService.js";
-import { checkUpdate, Update, UpdateDoc } from "../index.js";
+import { checkUpdate, genUpdateDoc, Update, UpdateDoc } from "../index.js";
 
 let cachedLastUpdate: Promise<UpdateDoc> = getLastUpdate(firestoreDB);
 
 async function scheduleCheck(timer: Timer, ctx: InvocationContext) {
   try {
     const lastUpdate = (await cachedLastUpdate).data;
-    const updates: Update[] = await checkUpdate(lastUpdate);
+    let latestUpdate = await scraper.getLatestUpdate();
+
+    const updates: Update[] = await checkUpdate(lastUpdate, latestUpdate);
 
     if (updates.length) {
       ctx.log("update(s) available!");
 
-      for (let update of updates) {
-        const doc: UpdateDoc = {
-          created_at: Timestamp.now(),
-          data: update,
-        };
+      const updateDocs = await genUpdateDoc(updates);
 
+      for (const doc of updateDocs) {
         await addDoc(
           collection(firestoreDB, "updates") as CollectionReference<UpdateDoc>,
           doc
         );
-
         cachedLastUpdate = Promise.resolve(doc);
-        await new Promise((res) => setTimeout(res, 1));
-      }
 
-      await partialUpdateQService.sendMessages(updates);
+        // TODO: Add failure checking of message queue
+        await partialUpdateQService.sendMessages(updates);
+      }
     } else {
       ctx.log("No update available.");
     }
