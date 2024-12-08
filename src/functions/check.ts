@@ -2,7 +2,12 @@ import "../../env.config.js";
 // 👆 stays there
 
 import { app, InvocationContext, Timer } from "@azure/functions";
-import { addDoc, collection, CollectionReference } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  CollectionReference,
+  Timestamp,
+} from "firebase/firestore";
 import { firestoreDB } from "../../firebase.config.js";
 import { getLastUpdate } from "../../services/firebase/firestore.js";
 import scraper from "../../services/scraper.js";
@@ -11,13 +16,27 @@ import partialUpdateQService from "../../services/serviceBus/partialUpdateQServi
 import { checkUpdate, genUpdateDoc, Update, UpdateDoc } from "../index.js";
 
 let cachedLastUpdate: Promise<UpdateDoc | null> = getLastUpdate(firestoreDB);
+const updatesCollectionRef = collection(
+  firestoreDB,
+  "updates"
+) as CollectionReference<UpdateDoc>;
 
 async function scheduleCheck(timer: Timer, ctx: InvocationContext) {
   try {
     const lastUpdate = (await cachedLastUpdate)?.data;
 
-    if (!lastUpdate) return ctx.log("No last Updates saved!");
     let latestUpdate = await scraper.getLatestUpdate();
+    if (!lastUpdate || !Object.keys(lastUpdate).length) {
+      const doc = {
+        created_at: Timestamp.now(),
+        data: latestUpdate.data(),
+      };
+
+      await addDoc(updatesCollectionRef, doc);
+      cachedLastUpdate = Promise.resolve(doc);
+
+      return;
+    }
 
     const updates: Update[] = await checkUpdate(lastUpdate, latestUpdate);
 
@@ -27,10 +46,7 @@ async function scheduleCheck(timer: Timer, ctx: InvocationContext) {
       const updateDocs = await genUpdateDoc(updates);
 
       for (const doc of updateDocs) {
-        await addDoc(
-          collection(firestoreDB, "updates") as CollectionReference<UpdateDoc>,
-          doc
-        );
+        await addDoc(updatesCollectionRef, doc);
         cachedLastUpdate = Promise.resolve(doc);
 
         // TODO: Add failure checking of message queue
