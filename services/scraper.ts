@@ -1,7 +1,14 @@
 import axios from "axios";
 import { Update } from "../src/index";
 import * as cheerio from "cheerio";
+import _ from "lodash";
 
+export interface LatestUpdate {
+  el: cheerio.Cheerio<any>;
+  data: () => Update;
+  isNext: () => boolean;
+  next: () => LatestUpdate | null;
+}
 class Scraper {
   private static readonly url = new URL("https://www.soa.ac.in/iter");
 
@@ -16,46 +23,67 @@ class Scraper {
     }
   }
 
-  async getLatestUpdate() {
+  async getLatestUpdate(): Promise<LatestUpdate> {
     const $ = await this.loadPage();
-    const targetElSelector = ".summary-item-list .summary-item";
 
-    function returnData(child: number): Update {
-      return {
-        title: $(
-          `${targetElSelector}:nth-child(${child}) .summary-content .summary-title a`
-        ).prop("innerText") as string,
-
-        url: `${Scraper.url.origin}${$(
-          `${targetElSelector}:nth-child(${child}) .summary-content .summary-title a`
-        ).prop("href")}`,
-
-        date: new Date(
-          $(
-            `${targetElSelector}:nth-child(${child}) .summary-content .summary-metadata-container .summary-metadata time`
-          ).prop("datetime")
-        ).toLocaleDateString("default", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        }),
-      } satisfies Update;
-    }
+    const targetSelector =
+      "div.summary-block-wrapper div.summary-item-list-container div.summary-item-list > div:first";
+    let el = cheerio.load(
+      $("h2:contains('Notice Board')")
+        .closest("div.col.sqs-col-12.span-12")
+        .toString()
+    )(targetSelector);
 
     return {
-      get data() {
-        return returnData(this.child);
+      el,
+      data() {
+        return Scraper.genNotice(this.el);
+      },
+      isNext() {
+        return this.el.next().toString() !== "";
       },
       next() {
-        return {
-          ...this,
-          child: this.child + 1,
-          get data(): Update {
-            return returnData(this.child);
-          },
-        };
+        if (!this.isNext()) return null;
+        return { ...this, el: this.el.next() };
       },
-      child: 1,
+    } as LatestUpdate;
+  }
+
+  public static genNotice(el: cheerio.Cheerio<any>): Update {
+    return {
+      date: new Date(
+        el
+          .children("div.summary-content")
+          .children("div.summary-metadata-container")
+          .children("div.summary-metadata")
+          .children("time")
+          .prop("datetime")
+      ).toLocaleDateString("default", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+      title: _.join(
+        _.filter(
+          _.split(
+            _.trim(
+              el
+                .children("div.summary-content")
+                .children("div.summary-title")
+                .children("a")
+                .prop("innerText") as string
+            ),
+            /\s+/
+          )
+        ),
+        " "
+      ),
+      url: (Scraper.url.origin +
+        el
+          .children("div.summary-content")
+          .children("div.summary-title")
+          .children("a")
+          .prop("href")) as string,
     };
   }
 }

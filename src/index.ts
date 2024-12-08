@@ -1,5 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 import _ from "lodash";
+import { LatestUpdate } from "../services/scraper";
 
 export interface Update {
   title: string;
@@ -12,13 +13,19 @@ export interface UpdateDoc {
   data: Update;
 }
 
-export async function checkUpdate(lastUpdate: Update, latestUpdate: any) {
+export async function checkUpdate(
+  lastUpdate: Update,
+  latestUpdate: LatestUpdate
+) {
   let lUpdate = latestUpdate;
   const updates: Update[] = [];
 
-  while (!_.isEqual(lastUpdate, lUpdate.data)) {
-    updates.unshift(lUpdate.data);
-    lUpdate = lUpdate.next();
+  while (lastUpdate.url != lUpdate.data().url) {
+    const next = lUpdate.next();
+    if (!next) break;
+
+    updates.unshift(lUpdate.data());
+    lUpdate = next;
   }
   return updates;
 }
