@@ -13,7 +13,11 @@ cd stoozebot-check
 
 ```sh
 npm i
+npm i -g azurite
 ```
+
+> [!NOTE]
+> Run `azurite` cmd to setup the azure env server before running the application locally
 
 #### 3. Build And Run
 
@@ -28,5 +32,5 @@ or
 npm run dev
 ```
 
-> [!NOTE]
+> [!TIP]
 > Use the `npm run dev` command only locally, for production use the `npm start`
